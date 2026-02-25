@@ -2,4 +2,21 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="header_primary">#FFE65C0D</color>
+    <color name="header_primary_soft">#FFF5D88A</color>
+
+    <color name="glass_white">#F5FFFFFF</color>
+    <color name="glass_card">#E8FFFFFF</color>
+    <color name="glass_card_dark">#1A000000</color>
+    <color name="surface_light">#FFF8F9FA</color>
+
+    <color name="text_primary">#FF1A1A1A</color>
+    <color name="text_secondary">#99000000</color>
+    <color name="tagline_subtle">#80000000</color>
+    <color name="on_header">#E6000000</color>
+    <color name="on_header_subtle">#99000000</color>
+
+    <color name="accent_green">#FF34C759</color>
+    <color name="accent_blue">#FF007AFF</color>
 </resources>
