@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         findViewById(R.id.btn_daily_checkin).setOnClickListener(v -> {
-            Toast.makeText(this, getString(R.string.daily_checkin) + " — coming soon", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, DailyCheckInActivity.class));
         });
 
         findViewById(R.id.btn_progress).setOnClickListener(v -> {

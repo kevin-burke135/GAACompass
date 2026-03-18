@@ -84,4 +84,40 @@
     <string name="county_down">Down</string>
     <string name="county_fermanagh">Fermanagh</string>
     <string name="county_monaghan">Monaghan</string>
+
+    <string name="recovery_score_label">Recovery Score</string>
+    <string name="out_of_10">out of 10</string>
+    <string name="sleep_quality">Sleep Quality</string>
+    <string name="energy_level">Energy Level</string>
+    <string name="muscle_soreness">Muscle Soreness</string>
+    <string name="stress_level">Stress Level</string>
+    <string name="rpe_yesterday">RPE (Yesterday)</string>
+
+    <string name="sleep_poor">Poor</string>
+    <string name="sleep_ok">Okay</string>
+    <string name="sleep_excellent">Excellent</string>
+
+    <string name="energy_exhausted">Exhausted</string>
+    <string name="energy_ok">Okay</string>
+    <string name="energy_energized">Energized</string>
+
+    <string name="soreness_none">None</string>
+    <string name="soreness_some">Some</string>
+    <string name="soreness_very">Very Sore</string>
+
+    <string name="stress_relaxed">Relaxed</string>
+    <string name="stress_ok">Stressed</string>
+    <string name="stress_stressed">Stressed</string>
+
+    <string name="rpe_easy">Easy</string>
+    <string name="rpe_moderate">Moderate</string>
+    <string name="rpe_max">Max Effort</string>
+
+    <string name="recommendation_placeholder">Good recovery. Moderate training recommended.</string>
+    <string name="recommendation_excellent">Good recovery. Moderate training recommended.</string>
+    <string name="recommendation_moderate">Moderate recovery. Consider training, but keep it easy.</string>
+    <string name="recommendation_low">Low recovery. Take it easy today.</string>
+
+    <string name="save_checkin">Save Check-in</string>
+    <string name="checkin_saved">Check-in saved</string>
 </resources>
