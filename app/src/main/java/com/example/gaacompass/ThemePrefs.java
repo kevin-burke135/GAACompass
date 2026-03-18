@@ -63,7 +63,7 @@ public final class ThemePrefs {
             case "westmeath": return R.drawable.bg_header_westmeath;
             case "wexford":  return R.drawable.bg_header_wexford;
             case "wicklow":  return R.drawable.bg_header_wicklow;
-            default:         return R.drawable.bg_header_yellow;
+            default:         return R.drawable.bg_header_gradient;
         }
     }
 }

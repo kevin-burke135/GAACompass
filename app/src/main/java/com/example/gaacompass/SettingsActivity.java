@@ -29,7 +29,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private static final ThemeOption[] THEMES = {
-            new ThemeOption(ThemePrefs.THEME_DEFAULT, R.string.theme_default, R.drawable.bg_header_yellow),
+            new ThemeOption(ThemePrefs.THEME_DEFAULT, R.string.theme_default, R.drawable.bg_header_gradient),
             new ThemeOption("galway", R.string.county_galway, R.drawable.bg_header_galway),
             new ThemeOption("leitrim", R.string.county_leitrim, R.drawable.bg_header_leitrim),
             new ThemeOption("mayo", R.string.county_mayo, R.drawable.bg_header_mayo),

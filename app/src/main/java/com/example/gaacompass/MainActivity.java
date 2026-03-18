@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        headerBackground = findViewById(R.id.header_background);
+        headerBackground = findViewById(R.id.header_container);
         applyHeaderTheme();
 
         View main = findViewById(R.id.main);
@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         findViewById(R.id.btn_log_frees).setOnClickListener(v -> {
-            Toast.makeText(this, getString(R.string.log_frees) + " — coming soon", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, LogFreesActivity.class));
         });
 
         findViewById(R.id.btn_weekly_plan).setOnClickListener(v -> {

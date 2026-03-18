@@ -3,20 +3,31 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <!-- Figma design colors -->
+    <color name="background_light">#F3F4F6</color>
+    <color name="card_background">#FFFFFF</color>
+    <color name="text_primary">#111827</color>
+    <color name="text_secondary">#6B7280</color>
+    <color name="text_motivation_body">#374151</color>
+    <color name="accent_orange">#F5A623</color>
+    <color name="accent_green">#22C55E</color>
+    <color name="accent_blue">#3B82F6</color>
+    <color name="accent_purple">#8B5CF6</color>
+    <color name="icon_bg_orange">#FEF3C7</color>
+    <color name="icon_bg_blue">#DBEAFE</color>
+    <color name="icon_bg_purple_light">#F3E8FF</color>
+    <color name="icon_bg_purple">#EDE9FE</color>
+    <color name="icon_bg_green_light">#DCFCE7</color>
+    <color name="motivation_banner_bg">#EDE9FE</color>
+    <color name="on_header">#FFFFFFFF</color>
+    <color name="on_header_subtle">#E6FFFFFF</color>
+
+    <!-- Legacy / theme -->
     <color name="header_primary">#FFE65C0D</color>
     <color name="header_primary_soft">#FFF5D88A</color>
-
     <color name="glass_white">#F5FFFFFF</color>
     <color name="glass_card">#E8FFFFFF</color>
     <color name="glass_card_dark">#1A000000</color>
-    <color name="surface_light">#FFF8F9FA</color>
-
-    <color name="text_primary">#FF1A1A1A</color>
-    <color name="text_secondary">#99000000</color>
+    <color name="surface_light">#F3F4F6</color>
     <color name="tagline_subtle">#80000000</color>
-    <color name="on_header">#E6000000</color>
-    <color name="on_header_subtle">#99000000</color>
-
-    <color name="accent_green">#FF34C759</color>
-    <color name="accent_blue">#FF007AFF</color>
 </resources>
