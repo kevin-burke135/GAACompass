@@ -173,4 +173,7 @@
 
     <string name="save_checkin">Save Check-in</string>
     <string name="checkin_saved">Check-in saved</string>
+    <string name="checkin_exists_title">Check-in already logged</string>
+    <string name="checkin_exists_message">You already logged a check-in today. Overwrite it?</string>
+    <string name="overwrite">Overwrite</string>
 </resources>

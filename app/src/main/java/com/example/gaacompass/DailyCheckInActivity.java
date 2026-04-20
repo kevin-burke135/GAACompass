@@ -8,6 +8,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.json.JSONArray;
@@ -76,11 +77,7 @@ public class DailyCheckInActivity extends AppCompatActivity {
         txtDate.setText(formatToday());
 
         FrameLayout btnSave = findViewById(R.id.btn_save_checkin);
-        btnSave.setOnClickListener(v -> {
-            saveCheckIn();
-            Toast.makeText(this, R.string.checkin_saved, Toast.LENGTH_SHORT).show();
-            finish();
-        });
+        btnSave.setOnClickListener(v -> handleSaveCheckIn());
 
         seekSleep = findViewById(R.id.seek_sleep);
         seekEnergy = findViewById(R.id.seek_energy);
@@ -233,7 +230,53 @@ public class DailyCheckInActivity extends AppCompatActivity {
         return getString(R.string.rpe_moderate);
     }
 
-    private void saveCheckIn() {
+    private void handleSaveCheckIn() {
+        if (hasCheckInForToday()) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.checkin_exists_title)
+                    .setMessage(R.string.checkin_exists_message)
+                    .setPositiveButton(R.string.overwrite, (dialog, which) -> {
+                        saveCheckIn(true);
+                        Toast.makeText(this, R.string.checkin_saved, Toast.LENGTH_SHORT).show();
+                        finish();
+                    })
+                    .setNegativeButton(R.string.cancel, null)
+                    .show();
+            return;
+        }
+        saveCheckIn(false);
+        Toast.makeText(this, R.string.checkin_saved, Toast.LENGTH_SHORT).show();
+        finish();
+    }
+
+    private boolean hasCheckInForToday() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String existing = prefs.getString(KEY_CHECKIN_HISTORY, "[]");
+        long today = startOfDay(System.currentTimeMillis());
+        try {
+            JSONArray arr = new JSONArray(existing);
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject item = arr.optJSONObject(i);
+                if (item == null) continue;
+                if (startOfDay(item.optLong("timestamp", 0L)) == today) {
+                    return true;
+                }
+            }
+        } catch (JSONException ignored) { }
+        return false;
+    }
+
+    private long startOfDay(long millis) {
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.setTimeInMillis(millis);
+        cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+        cal.set(java.util.Calendar.MINUTE, 0);
+        cal.set(java.util.Calendar.SECOND, 0);
+        cal.set(java.util.Calendar.MILLISECOND, 0);
+        return cal.getTimeInMillis();
+    }
+
+    private void saveCheckIn(boolean overwriteToday) {
         int sleep = seekSleep.getProgress();
         int energy = seekEnergy.getProgress();
         int soreness = seekSoreness.getProgress();
@@ -256,6 +299,16 @@ public class DailyCheckInActivity extends AppCompatActivity {
         String existing = prefs.getString(KEY_CHECKIN_HISTORY, "[]");
         try {
             JSONArray arr = new JSONArray(existing);
+            long today = startOfDay(now);
+            JSONArray cleanArr = new JSONArray();
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject existingItem = arr.optJSONObject(i);
+                if (existingItem == null) continue;
+                if (overwriteToday && startOfDay(existingItem.optLong("timestamp", 0L)) == today) {
+                    continue;
+                }
+                cleanArr.put(existingItem);
+            }
             JSONObject item = new JSONObject();
             item.put("timestamp", now);
             item.put("recovery", recovery);
@@ -264,8 +317,8 @@ public class DailyCheckInActivity extends AppCompatActivity {
             item.put("soreness", soreness);
             item.put("stress", stress);
             item.put("rpe", rpe);
-            arr.put(item);
-            prefs.edit().putString(KEY_CHECKIN_HISTORY, arr.toString()).apply();
+            cleanArr.put(item);
+            prefs.edit().putString(KEY_CHECKIN_HISTORY, cleanArr.toString()).apply();
         } catch (JSONException e) {
             JSONArray arr = new JSONArray();
             try {
