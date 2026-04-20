@@ -67,13 +67,15 @@ public class SettingsActivity extends AppCompatActivity {
     private ThemePrefs themePrefs;
     private LinearLayout themeList;
     private String currentThemeKey;
+    private androidx.appcompat.widget.Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-        androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
+        ThemePrefs.applyHeaderTheme(this, toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -88,6 +90,12 @@ public class SettingsActivity extends AppCompatActivity {
             View row = makeThemeRow(option);
             themeList.addView(row);
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ThemePrefs.applyHeaderTheme(this, toolbar);
     }
 
     private View makeThemeRow(@NonNull ThemeOption option) {
@@ -120,6 +128,7 @@ public class SettingsActivity extends AppCompatActivity {
             themePrefs.setThemeKey(key);
             currentThemeKey = key;
             updateCheckVisibility();
+            ThemePrefs.applyHeaderTheme(this, toolbar);
         });
 
         return row;

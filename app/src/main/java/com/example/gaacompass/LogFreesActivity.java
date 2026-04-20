@@ -8,6 +8,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.activity.OnBackPressedCallback;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,6 +27,8 @@ public class LogFreesActivity extends AppCompatActivity {
     private TextView statAttemptsValue;
     private TextView statScoredValue;
     private TextView statAccValue;
+    private android.view.View headerView;
+    private boolean skipUnsavedPrompt;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,14 +39,29 @@ public class LogFreesActivity extends AppCompatActivity {
         statAttemptsValue = findViewById(R.id.stat_attempts_value);
         statScoredValue = findViewById(R.id.stat_scored_value);
         statAccValue = findViewById(R.id.stat_acc_value);
+        headerView = findViewById(R.id.header);
+        ThemePrefs.applyHeaderTheme(this, headerView);
 
-        findViewById(R.id.btn_back).setOnClickListener(v -> finish());
+        findViewById(R.id.btn_back).setOnClickListener(v -> attemptExit());
         findViewById(R.id.btn_clear_all).setOnClickListener(v -> showClearAllConfirm());
         findViewById(R.id.btn_end_session).setOnClickListener(v -> showEndSessionSummary());
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                attemptExit();
+            }
+        });
 
         pitchView.setAttempts(attempts);
         pitchView.setOnPitchTapListener((normX, normY) -> showAttemptDialog(normX, normY));
         updateStats();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ThemePrefs.applyHeaderTheme(this, headerView);
     }
 
     private void showAttemptDialog(float normX, float normY) {
@@ -115,7 +133,10 @@ public class LogFreesActivity extends AppCompatActivity {
                 .setTitle(R.string.session_complete)
                 .setMessage(details.toString())
                 .setPositiveButton(R.string.save_session, (dialog, which) -> saveSessionAndFinish(totalFinal, scoredFinal, accFinal))
-                .setNegativeButton(R.string.discard, (dialog, which) -> finish())
+                .setNegativeButton(R.string.discard, (dialog, which) -> {
+                    skipUnsavedPrompt = true;
+                    finish();
+                })
                 .show();
     }
 
@@ -139,7 +160,24 @@ public class LogFreesActivity extends AppCompatActivity {
             } catch (JSONException ignored) { }
         }
         Toast.makeText(this, getString(R.string.save_session), Toast.LENGTH_SHORT).show();
+        skipUnsavedPrompt = true;
         setResult(RESULT_OK);
         finish();
+    }
+
+    private void attemptExit() {
+        if (skipUnsavedPrompt || attempts.isEmpty()) {
+            finish();
+            return;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.discard_session_title)
+                .setMessage(R.string.discard_session_message)
+                .setPositiveButton(R.string.discard, (dialog, which) -> {
+                    skipUnsavedPrompt = true;
+                    finish();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
     }
 }

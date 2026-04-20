@@ -2,6 +2,7 @@ package com.example.gaacompass;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.view.View;
 
 import androidx.annotation.DrawableRes;
 
@@ -25,6 +26,13 @@ public final class ThemePrefs {
 
     public void setThemeKey(String key) {
         prefs.edit().putString(KEY_HEADER_THEME, key).apply();
+    }
+
+    public static void applyHeaderTheme(Context context, View headerView) {
+        if (context == null || headerView == null) return;
+        ThemePrefs prefs = new ThemePrefs(context);
+        int drawableRes = getHeaderDrawableForTheme(prefs.getThemeKey());
+        headerView.setBackgroundResource(drawableRes);
     }
 
     @DrawableRes

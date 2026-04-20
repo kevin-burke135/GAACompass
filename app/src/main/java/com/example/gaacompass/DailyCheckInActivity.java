@@ -10,6 +10,10 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -25,6 +29,7 @@ public class DailyCheckInActivity extends AppCompatActivity {
     private static final String KEY_RPE = "daily_rpe";
     private static final String KEY_RECOVERY = "daily_recovery";
     private static final String KEY_TIMESTAMP = "daily_checkin_timestamp";
+    private static final String KEY_CHECKIN_HISTORY = "daily_checkins_history";
 
     private SeekBar seekSleep;
     private SeekBar seekEnergy;
@@ -51,11 +56,15 @@ public class DailyCheckInActivity extends AppCompatActivity {
     private TextView txtRecommendation;
 
     private TextView txtDate;
+    private android.view.View headerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_daily_checkin);
+
+        headerView = findViewById(R.id.header);
+        ThemePrefs.applyHeaderTheme(this, headerView);
 
         ImageButton btnBack = findViewById(R.id.btn_back);
         btnBack.setOnClickListener(v -> finish());
@@ -119,6 +128,12 @@ public class DailyCheckInActivity extends AppCompatActivity {
         seekRpe.setOnSeekBarChangeListener(listener);
 
         updateLabelsAndRecommendation();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ThemePrefs.applyHeaderTheme(this, headerView);
     }
 
     private String formatToday() {
@@ -225,6 +240,7 @@ public class DailyCheckInActivity extends AppCompatActivity {
         int stress = seekStress.getProgress();
         int rpe = seekRpe.getProgress();
         float recovery = computeRecovery(sleep, energy, soreness, stress, rpe);
+        long now = System.currentTimeMillis();
 
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         prefs.edit()
@@ -234,8 +250,37 @@ public class DailyCheckInActivity extends AppCompatActivity {
                 .putInt(KEY_STRESS, stress)
                 .putInt(KEY_RPE, rpe)
                 .putFloat(KEY_RECOVERY, recovery)
-                .putLong(KEY_TIMESTAMP, System.currentTimeMillis())
+                .putLong(KEY_TIMESTAMP, now)
                 .apply();
+
+        String existing = prefs.getString(KEY_CHECKIN_HISTORY, "[]");
+        try {
+            JSONArray arr = new JSONArray(existing);
+            JSONObject item = new JSONObject();
+            item.put("timestamp", now);
+            item.put("recovery", recovery);
+            item.put("sleep", sleep);
+            item.put("energy", energy);
+            item.put("soreness", soreness);
+            item.put("stress", stress);
+            item.put("rpe", rpe);
+            arr.put(item);
+            prefs.edit().putString(KEY_CHECKIN_HISTORY, arr.toString()).apply();
+        } catch (JSONException e) {
+            JSONArray arr = new JSONArray();
+            try {
+                JSONObject item = new JSONObject();
+                item.put("timestamp", now);
+                item.put("recovery", recovery);
+                item.put("sleep", sleep);
+                item.put("energy", energy);
+                item.put("soreness", soreness);
+                item.put("stress", stress);
+                item.put("rpe", rpe);
+                arr.put(item);
+                prefs.edit().putString(KEY_CHECKIN_HISTORY, arr.toString()).apply();
+            } catch (JSONException ignored) { }
+        }
     }
 }
 
