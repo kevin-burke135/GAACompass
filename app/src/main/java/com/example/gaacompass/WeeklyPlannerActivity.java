@@ -8,10 +8,13 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 public class WeeklyPlannerActivity extends AppCompatActivity {
@@ -24,6 +27,11 @@ public class WeeklyPlannerActivity extends AppCompatActivity {
     private static final int PLAN_GYM = 2;
     private static final int PLAN_TRAINING = 3;
     private static final int PLAN_MATCH = 4;
+    private static final double WEIGHT_REST = 0.0;
+    private static final double WEIGHT_RECOVER = 0.5;
+    private static final double WEIGHT_GYM = 1.5;
+    private static final double WEIGHT_TRAINING = 2.0;
+    private static final double WEIGHT_MATCH = 3.0;
 
     private long weekStartMillis;
 
@@ -91,10 +99,7 @@ public class WeeklyPlannerActivity extends AppCompatActivity {
             applyWeek(loadSelections(weekStartMillis));
         });
 
-        findViewById(R.id.btn_save_plan).setOnClickListener(v -> {
-            saveSelections(weekStartMillis, selections);
-            Toast.makeText(this, R.string.plan_saved, Toast.LENGTH_SHORT).show();
-        });
+        findViewById(R.id.btn_save_plan).setOnClickListener(v -> onSavePlanClicked());
     }
 
     @Override
@@ -168,6 +173,25 @@ public class WeeklyPlannerActivity extends AppCompatActivity {
                 .apply();
     }
 
+    private void onSavePlanClicked() {
+        int matches = countType(PLAN_MATCH);
+        if (matches >= 2) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.weekly_two_match_warning_title)
+                    .setMessage(R.string.weekly_two_match_warning_message)
+                    .setNegativeButton(R.string.cancel, null)
+                    .setPositiveButton(R.string.save_anyway, (dialog, which) -> savePlanNow())
+                    .show();
+            return;
+        }
+        savePlanNow();
+    }
+
+    private void savePlanNow() {
+        saveSelections(weekStartMillis, selections);
+        Toast.makeText(this, R.string.plan_saved, Toast.LENGTH_SHORT).show();
+    }
+
     private String weeklyKey(long weekStart) {
         return "weekly_plan_week_" + weekStart;
     }
@@ -235,6 +259,7 @@ public class WeeklyPlannerActivity extends AppCompatActivity {
         int gym = countType(PLAN_GYM);
         int training = countType(PLAN_TRAINING);
         int match = countType(PLAN_MATCH);
+        double loadScore = calculateWeeklyLoadScore();
 
         String summary = getString(
                 R.string.weekly_summary_format,
@@ -242,25 +267,36 @@ public class WeeklyPlannerActivity extends AppCompatActivity {
                 recover,
                 gym,
                 training,
-                match
+                match,
+                String.format(Locale.getDefault(), "%.1f", loadScore)
         );
         txtWeeklySummary.setText(summary);
 
-        int hardLoad = gym + training + match;
-        String prompt;
-        if (hardLoad >= 5 && (rest + recover) <= 1) {
-            prompt = getString(R.string.weekly_prompt_high_load_add_recovery);
-        } else if (match >= 2 && recover == 0) {
-            prompt = getString(R.string.weekly_prompt_match_recovery);
-        } else if (training >= 4 && rest == 0) {
-            prompt = getString(R.string.weekly_prompt_add_rest_day);
-        } else if ((rest + recover) >= 3 && hardLoad <= 2) {
-            prompt = getString(R.string.weekly_prompt_add_more_load);
+        String baseFeedback;
+        if (loadScore <= 5.0) {
+            baseFeedback = getString(R.string.weekly_load_feedback_undertraining);
+        } else if (loadScore <= 10.0) {
+            baseFeedback = getString(R.string.weekly_load_feedback_optimal);
+        } else if (loadScore <= 13.0) {
+            baseFeedback = getString(R.string.weekly_load_feedback_high_caution);
         } else {
-            prompt = getString(R.string.weekly_prompt_balanced);
+            baseFeedback = getString(R.string.weekly_load_feedback_overload);
         }
 
-        txtWeeklyPrompt.setText(prompt);
+        List<String> warnings = new ArrayList<>();
+        warnings.addAll(buildRedFlagWarnings(match, rest, recover));
+        warnings.addAll(buildAmberFlagWarnings(match));
+
+        if (!warnings.isEmpty()) {
+            StringBuilder promptBuilder = new StringBuilder(baseFeedback);
+            for (String warning : warnings) {
+                promptBuilder.append("\n• ").append(warning);
+            }
+            txtWeeklyPrompt.setText(promptBuilder.toString());
+            return;
+        }
+
+        txtWeeklyPrompt.setText(baseFeedback);
     }
 
     private int countType(int type) {
@@ -269,6 +305,86 @@ public class WeeklyPlannerActivity extends AppCompatActivity {
             if (value == type) count++;
         }
         return count;
+    }
+
+    private double calculateWeeklyLoadScore() {
+        double total = 0.0;
+        for (int selection : selections) {
+            total += weightForSelection(selection);
+        }
+        return total;
+    }
+
+    private double weightForSelection(int selection) {
+        switch (selection) {
+            case PLAN_RECOVER:
+                return WEIGHT_RECOVER;
+            case PLAN_GYM:
+                return WEIGHT_GYM;
+            case PLAN_TRAINING:
+                return WEIGHT_TRAINING;
+            case PLAN_MATCH:
+                return WEIGHT_MATCH;
+            case PLAN_REST:
+            default:
+                return WEIGHT_REST;
+        }
+    }
+
+    private List<String> buildRedFlagWarnings(int match, int rest, int recover) {
+        List<String> warnings = new ArrayList<>();
+        int totalRecoveryDays = rest + recover;
+
+        if (match > 1) {
+            warnings.add(getString(R.string.weekly_red_flag_more_than_one_match));
+        }
+        if (totalRecoveryDays < 2) {
+            warnings.add(getString(R.string.weekly_red_flag_low_recovery_days));
+        }
+        if (hasBackToBackMatchOrMatchThenPitch()) {
+            warnings.add(getString(R.string.weekly_red_flag_back_to_back_high_intensity));
+        }
+        if (rest == 0 && recover == 0) {
+            warnings.add(getString(R.string.weekly_red_flag_no_rest_or_recovery));
+        }
+
+        return warnings;
+    }
+
+    private List<String> buildAmberFlagWarnings(int match) {
+        List<String> warnings = new ArrayList<>();
+        if (hasMoreThanThreeConsecutiveTrainingDays()) {
+            warnings.add(getString(R.string.weekly_amber_flag_consecutive_training));
+        }
+        if (match == 2) {
+            warnings.add(getString(R.string.weekly_amber_flag_two_matches));
+        }
+        return warnings;
+    }
+
+    private boolean hasBackToBackMatchOrMatchThenPitch() {
+        for (int i = 0; i < selections.length - 1; i++) {
+            int current = selections[i];
+            int next = selections[i + 1];
+            if (current == PLAN_MATCH && next == PLAN_MATCH) return true;
+            if (current == PLAN_MATCH && next == PLAN_TRAINING) return true;
+        }
+        return false;
+    }
+
+    private boolean hasMoreThanThreeConsecutiveTrainingDays() {
+        int consecutive = 0;
+        for (int selection : selections) {
+            if (selection == PLAN_GYM || selection == PLAN_TRAINING || selection == PLAN_MATCH) {
+                consecutive++;
+                if (consecutive > 3) {
+                    return true;
+                }
+            } else {
+                consecutive = 0;
+            }
+        }
+        return false;
     }
 }
 
