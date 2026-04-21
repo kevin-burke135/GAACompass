@@ -132,8 +132,8 @@ public class LogFreesActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle(R.string.session_complete)
                 .setMessage(details.toString())
-                .setPositiveButton(R.string.save_session, (dialog, which) -> saveSessionAndFinish(totalFi
-                        nal, scoredFinal, accFinal))
+                .setPositiveButton(R.string.save_session, (dialog, which) ->
+                        saveSessionAndFinish(totalFinal, scoredFinal, accFinal))
                 .setNegativeButton(R.string.discard, (dialog, which) -> {
                     skipUnsavedPrompt = true;
                     finish();
